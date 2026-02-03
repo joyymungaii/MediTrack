@@ -1,0 +1,52 @@
+{
+  "placeholderImages": [
+    {
+      "id": "med1",
+      "description": "Pain Reliever Tablets",
+      "imageUrl": "https://picsum.photos/seed/1/400/300",
+      "imageHint": "pills bottle"
+    },
+    {
+      "id": "med2",
+      "description": "Cough Syrup",
+      "imageUrl": "https://picsum.photos/seed/2/400/300",
+      "imageHint": "cough syrup"
+    },
+    {
+      "id": "med3",
+      "description": "Allergy Relief Spray",
+      "imageUrl": "https://picsum.photos/seed/3/400/300",
+      "imageHint": "nasal spray"
+    },
+    {
+      "id": "med4",
+      "description": "Vitamin C Supplements",
+      "imageUrl": "https://picsum.photos/seed/4/400/300",
+      "imageHint": "vitamin bottle"
+    },
+    {
+      "id": "med5",
+      "description": "Antacid Chewables",
+      "imageUrl": "https://picsum.photos/seed/5/400/300",
+      "imageHint": "antacid tablets"
+    },
+    {
+      "id": "med6",
+      "description": "First-Aid Kit",
+      "imageUrl": "https://picsum.photos/seed/6/400/300",
+      "imageHint": "first-aid kit"
+    },
+    {
+      "id": "med7",
+      "description": "Digital Thermometer",
+      "imageUrl": "https://picsum.photos/seed/7/400/300",
+      "imageHint": "digital thermometer"
+    },
+    {
+      "id": "med8",
+      "description": "Hand Sanitizer",
+      "imageUrl": "https://picsum.photos/seed/8/400/300",
+      "imageHint": "hand sanitizer"
+    }
+  ]
+}
