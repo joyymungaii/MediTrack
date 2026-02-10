@@ -40,7 +40,7 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await login(values.email);
+    await login(values.email, values.password);
   }
 
   return (

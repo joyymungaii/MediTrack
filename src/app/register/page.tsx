@@ -40,7 +40,7 @@ export default function RegisterPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await register(values.email);
+    await register(values.email, values.password);
   }
 
   return (
