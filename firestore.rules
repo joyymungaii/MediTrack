@@ -161,3 +161,64 @@ service cloud.firestore {
     }
   }
 }
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      // Check for admin role on the user's document in the /users collection
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['pharmacist', 'manager'];
+    }
+
+    match /users/{userId} {
+      // Users can read and write to their own profile.
+      allow read, write: if isOwner(userId);
+      // Admins can also read user profiles.
+      allow get: if isAdmin();
+    }
+
+    match /users/{userId}/cartItems/{cartItemId} {
+      // A user can read and write to their own cart.
+      allow read, write: if isOwner(userId);
+    }
+
+    match /medicines/{medicineId} {
+      // Anyone can browse medicines.
+      allow read: if true;
+      // Only admins can add/edit medicines.
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      // A user can create their own order.
+      allow create: if isOwner(request.resource.data.userId);
+      // A user can read their own orders.
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      // Only admins can update orders.
+      allow update: if isAdmin();
+    }
+
+    match /prescriptions/{prescriptionId} {
+      // Any signed-in user can upload a prescription for themselves.
+      allow create: if isOwner(request.resource.data.userId);
+      // Users can view their own prescriptions, admins can view any.
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      // Only admins can manage prescriptions.
+      allow update: if isAdmin();
+    }
+
+    match /followUps/{followUpId} {
+        // Only admins can create or read follow-ups.
+        allow read, write: if isAdmin();
+    }
+  }
+}
