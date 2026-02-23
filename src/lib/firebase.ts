@@ -1,28 +1,28 @@
-// Import the functions you need from the SDKs you need
+'use client';
+
+// Import Firebase
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-auth-domain",
-  projectId: "your-project-id",
-  storageBucket: "your-storage-bucket",
-  messagingSenderId: "your-messaging-sender-id",
-  appId: "your-app-id",
-  measurementId: "your-measurement-id"
+  apiKey: "AIzaSyCF62zHT9CbtSloXc4EYrCTJrjTpy5zBhQ",
+  authDomain: "meditrack-3f2c0.firebaseapp.com",
+  projectId: "meditrack-3f2c0",
+  storageBucket: "meditrack-3f2c0.firebasestorage.app",
+  messagingSenderId: "297941069670",
+  appId: "1:297941069670:web:0a0845d8400803e71922a7",
+  measurementId: "G-50LHG5M8T8"
 };
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Initialize Firebase safely
+const app = !getApps().length
+  ? initializeApp(firebaseConfig)
+  : getApp();
 
+// Export services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-
-// NOTE: The Firebase config has been populated with your project's credentials.
-// You can view and manage your project in the Firebase console.
