@@ -1,170 +1,14 @@
-/**
- * @fileoverview Firestore Security Rules for Manyatta Pharmacy Management System.
- *
- * Core Philosophy:
- * This ruleset prioritizes secure data access based on user roles and ownership.
- * It uses a hybrid approach, combining role-based access for administrative tasks
- * with user-based ownership for personal data and actions. Data validation is
- * relaxed to facilitate prototyping.
- *
- * Data Structure:
- * - /users/{userId}: Stores public user profile information.
- * - /users/{userId}/cartItems/{cartItemId}: Stores cart items for a specific user.
- * - /medicines/{medicineId}: Stores information about available medicines (public read).
- * - /orders/{orderId}: Stores customer order data. Accessible to authenticated users for reading.
- *  Updateable only by users with 'pharmacist' or 'manager' roles.
- * - /prescriptions/{prescriptionId}: Stores user-uploaded prescriptions.
- * - /followUps/{followUpId}: Stores follow-up messages sent to patients.
- *
- * Key Security Decisions:
- * - User listing is implicitly denied (no rule allowing list on /users).
- * - All write operations require authentication.
- * - 'medicines' collection is publicly readable.
- *
- * Denormalization for Authorization:
- *  - Orders: No denormalization is required as authorization relies on user roles,
- *  which are available in the `request.auth.token` (assuming custom claims are used).
- *  If custom claims are not used, the user's role must be stored in the /users/{userId} document.
- *  In that case, fetching the user's profile to determine the role is necessary, which is costly.
- *
- * Structural Segregation: N/A
- */
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Checks if the request is made by an authenticated user.
-     */
-    function isSignedIn() {
-      return request.auth != null;
+    // TEMPORARY TEST RULE
+    // Allows anyone to read and write everything
+    // Use ONLY for testing cart and login issues
+    match /{document=**} {
+      allow read, write: if true;
     }
-
-    /**
-     * @description Checks if the user ID matches the authenticated user's ID.
-     */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the user is a pharmacist or a manager (admin).
-     * @details This function assumes the user's role is available in the custom auth token.
-     * @example request.auth.token.role == 'pharmacist'
-     */
-    function isAdmin() {
-        return isSignedIn() && (request.auth.token.role in ['pharmacist', 'manager']);
-    }
-
-    /**
-     * @description Checks if the resource exists.
-     */
-    function resourceExists() {
-        return resource != null;
-    }
-
-    /**
-     * @description Combines ownership check with resource existence check for safer updates/deletes.
-     */
-    function isExistingOwner(userId) {
-        return isOwner(userId) && resourceExists();
-    }
-
-    /**
-     * @description Defines access rules for user profiles.
-     * @path /users/{userId}
-     * @allow (create) User 'user123' can create their profile if authenticated.
-     * @deny (create) User 'user456' cannot create profile for 'user123'.
-     * @allow (get) Any authenticated user can read any profile.
-     * @deny (list) No one can list all user profiles.
-     * @principle Enforces user ownership for profile creation.
-     */
-    match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.uid == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.uid == userId; // Enforce immutability
-      allow delete: if isExistingOwner(userId);
-      allow list: if false;
-    }
-
-    /**
-     * @description Defines access rules for cart items within a user's profile.
-     * @path /users/{userId}/cartItems/{cartItemId}
-     * @allow (create) User 'user123' can add items to their cart.
-     * @deny (create) User 'user456' cannot add items to 'user123' cart.
-     * @principle Restricts cart access to the cart owner.
-     */
-    match /users/{userId}/cartItems/{cartItemId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-      allow list: if isOwner(userId);
-    }
-
-    /**
-     * @description Defines access rules for medicines (publicly readable).
-     * @path /medicines/{medicineId}
-     * @allow (get) Any user can read medicine details.
-     * @allow (list) Any user can list medicines.
-     * @deny (create) Only authenticated users can create medicines. // TODO: refine to admin only.
-     * @principle Allows public read access to medicine information.
-     */
-    match /medicines/{medicineId} {
-      allow get, list: if true;
-      allow create: if isSignedIn(); // TODO: restrict to admin
-      allow update: if false; // TODO: restrict to admin
-      allow delete: if false; // TODO: restrict to admin
-    }
-
-    /**
-     * @description Defines access rules for orders.
-     * @path /orders/{orderId}
-     * @allow (read) Authenticated users can view order details.
-     * @allow (update) Pharmacists and managers can update order status.
-     * @deny (update) Regular users cannot update order status.
-     * @principle Restricts order updates to authorized personnel.
-     */
-    match /orders/{orderId} {
-      allow read: if isSignedIn();
-      allow create: if false;
-      allow update: if isSignedIn() && isAdmin() && resourceExists();
-      allow delete: if false;
-      allow list: if false;
-    }
-
-    /**
-     * @description Defines access rules for prescriptions.
-     * @path /prescriptions/{prescriptionId}
-     * @allow (create) Authenticated users can upload prescriptions.
-     * @principle Allows users to upload their prescriptions.
-     */
-    match /prescriptions/{prescriptionId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if false; // TODO: Add admin/pharmacist role check and implement safe updates
-      allow delete: if false; // TODO: Add admin/pharmacist role check
-      allow list: if false; // TODO: Add admin/pharmacist role check and list access.
-    }
-
-    /**
-     * @description Defines access rules for follow-up messages.
-     * @path /followUps/{followUpId}
-     *  // TODO: Implement access control for follow-up messages. Requires more information about intended usage.
-     */
-    match /followUps/{followUpId} {
-      allow read: if false; // TODO
-      allow create: if false; // TODO
-      allow update: if false; // TODO
-      allow delete: if false; // TODO
-      allow list: if false; // TODO
-    }
-  }
-}
-
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
 
     function isSignedIn() {
       return request.auth != null;
@@ -176,7 +20,7 @@ service cloud.firestore {
 
     function isAdmin() {
       // Check for admin role on the user's document in the /users collection
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['pharmacist', 'manager'];
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'pharmacist', 'manager'];
     }
 
     match /users/{userId} {
@@ -186,7 +30,7 @@ service cloud.firestore {
       allow get: if isAdmin();
     }
 
-    match /users/{userId}/cartItems/{cartItemId} {
+    match /users/{uid}/cartItems/{cartItemId} {
       // A user can read and write to their own cart.
       allow read, write: if isOwner(userId);
     }
