@@ -3,7 +3,7 @@
 // Import Firebase
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, initializeFirestore, persistentLocalCache } from "firebase/firestore";
+import { getFirestore, persistentLocalCache, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Firebase configuration
@@ -22,13 +22,8 @@ const app = !getApps().length
   ? initializeApp(firebaseConfig)
   : getApp();
 
-// Initialize Firestore with persistence settings
-const db = initializeFirestore(app, {
-  cache: persistentLocalCache(),
-});
-
 // Export services
 export const auth = getAuth(app);
-export { db };
+export const db = getFirestore(app);
 export const storage = getStorage(app);
 
