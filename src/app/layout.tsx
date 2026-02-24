@@ -2,9 +2,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/contexts/auth-provider';
+import { Providers } from '@/components/providers';
 import { cn } from '@/lib/utils';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export const metadata: Metadata = {
   title: 'MediTrack Pro',
@@ -28,11 +27,10 @@ export default function RootLayout({
           'min-h-screen bg-background font-body antialiased'
         )}
       >
-        <AuthProvider>
+        <Providers>
           {children}
-          <Toaster />
-          <FirebaseErrorListener />
-        </AuthProvider>
+        </Providers>
+        <Toaster />
       </body>
     </html>
   );
