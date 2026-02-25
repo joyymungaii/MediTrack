@@ -1,14 +1,6 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // TEMPORARY TEST RULE
-    // Allows anyone to read and write everything
-    // Use ONLY for testing cart and login issues
-    match /{document=**} {
-      allow read, write: if true;
-    }
 
     function isSignedIn() {
       return request.auth != null;
@@ -30,7 +22,7 @@ service cloud.firestore {
       allow get: if isAdmin();
     }
 
-    match /users/{uid}/cartItems/{cartItemId} {
+    match /users/{userId}/cartItems/{cartItemId} {
       // A user can read and write to their own cart.
       allow read, write: if isOwner(userId);
     }
