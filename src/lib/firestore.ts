@@ -1,142 +1,146 @@
+// firestore.ts
 'use client';
-import {
-  collection,
-  addDoc,
-  doc,
-  getDocs,
-  writeBatch,
-  serverTimestamp,
-  Firestore,
-  getDoc,
-  updateDoc,
-  increment,
-  setDoc,
-} from 'firebase/firestore';
-import type { CartItem, Order, Prescription, FollowUp } from '@/lib/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
-export const addCartItem = async (db: Firestore, userId: string, item: Omit<CartItem, 'id'>) => {
-  if (!item.medicineId) {
-    console.error('Medicine ID is missing');
-    return;
-  }
-  const itemRef = doc(db, 'users', userId, 'cartItems', item.medicineId);
+import { Firestore, collection, addDoc, doc, setDoc, updateDoc, getDocs, deleteDoc, query, where, orderBy, serverTimestamp } from "firebase/firestore";
 
-  getDoc(itemRef)
-    .then((docSnap) => {
-      if (docSnap.exists()) {
-        updateDoc(itemRef, {
-          quantity: increment(item.quantity),
-        }).catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: itemRef.path,
-            operation: 'update',
-            requestResourceData: { quantity: `increment(${item.quantity})` },
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        });
-      } else {
-        setDoc(itemRef, item).catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: itemRef.path,
-            operation: 'create',
-            requestResourceData: item,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        });
-      }
-    })
-    .catch(async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: itemRef.path,
-        operation: 'get',
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    });
-};
+// Add a user document after registration
+export async function createUserDoc(db: Firestore, uid: string, name: string, email: string) {
+  await setDoc(doc(db, "users", uid), {
+    name,
+    email,
+    createdAt: serverTimestamp()
+  });
+}
 
-export const createOrder = async (
+// Add cart item for a user
+export async function addCartItem(
   db: Firestore,
   userId: string,
-  orderData: Omit<Order, 'id' | 'createdAt' | 'userId'>,
-  cartItems: CartItem[]
-) => {
-  const batch = writeBatch(db);
+  item: {
+    medicineId: string;
+    name: string;
+    price: number;
+    imageUrl: string;
+    quantity: number;
+  }
+) {
+  if (!userId) throw new Error("User not logged in");
 
-  const orderRef = doc(collection(db, 'orders'));
-  batch.set(orderRef, {
-    ...orderData,
-    userId: userId,
+  const cartRef = collection(db, "users", userId, "cartItems");
+  return await addDoc(cartRef, {
+    medicineId: item.medicineId,
+    name: item.name,
+    price: item.price,
+    imageUrl: item.imageUrl,
+    quantity: item.quantity,
+    createdAt: serverTimestamp(),
+  });
+}
+
+// Create an order and clear the user's cart
+export async function createOrder(
+  db: Firestore,
+  userId: string,
+  orderData: {
+    fullName: string;
+    address: string;
+    phone: string;
+    paymentMethod: 'MPESA' | 'Cash on Delivery';
+  },
+  cartItems: { id?: string; medicineId: string; name: string; price: number; imageUrl: string; quantity: number }[]
+): Promise<string> {
+  if (!userId) throw new Error("User not logged in");
+
+  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const orderRef = await addDoc(collection(db, "orders"), {
+    userId,
+    items: cartItems.map(item => ({
+      medicineId: item.medicineId,
+      name: item.name,
+      price: item.price,
+      imageUrl: item.imageUrl,
+      quantity: item.quantity,
+    })),
+    total,
+    status: orderData.paymentMethod === 'MPESA' ? 'Paid' : 'Pending',
+    shippingAddress: orderData.address,
+    customerName: orderData.fullName,
+    customerPhone: orderData.phone,
+    paymentMethod: orderData.paymentMethod,
     createdAt: serverTimestamp(),
   });
 
-  const cartRef = collection(db, 'users', userId, 'cartItems');
+  // Clear user's cart after order is placed
+  const cartRef = collection(db, "users", userId, "cartItems");
+  const cartSnapshot = await getDocs(cartRef);
+  const deletePromises = cartSnapshot.docs.map(cartDoc => deleteDoc(cartDoc.ref));
+  await Promise.all(deletePromises);
 
-  try {
-    const cartSnapshot = await getDocs(cartRef);
-    cartSnapshot.docs.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
+  return orderRef.id;
+}
 
-    await batch.commit();
-    return orderRef.id;
-  } catch (serverError: any) {
-    if (serverError.code === 'permission-denied') {
-        const permissionError = new FirestorePermissionError({
-            path: cartRef.path,
-            operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    }
-    // Re-throw other errors
-    throw serverError;
+// Upload a prescription
+export async function uploadPrescription(
+  db: Firestore,
+  userId: string,
+  data: {
+    patientName: string;
+    email: string;
+    prescriptionImageUrl: string;
+    notes?: string;
   }
-};
+): Promise<string> {
+  if (!userId) throw new Error("User not logged in");
 
-
-export const uploadPrescription = async (db: Firestore, userId: string, data: Omit<Prescription, 'id' | 'userId' | 'uploadedAt' | 'status'>) => {
-  const prescriptionData: Omit<Prescription, 'id'> = {
-    ...data,
+  const prescriptionRef = await addDoc(collection(db, "prescriptions"), {
     userId,
+    patientName: data.patientName,
+    email: data.email,
+    prescriptionImageUrl: data.prescriptionImageUrl,
+    notes: data.notes || '',
     status: 'pending',
     uploadedAt: serverTimestamp(),
-  };
-  const prescriptionsRef = collection(db, 'prescriptions');
-  addDoc(prescriptionsRef, prescriptionData).catch(async (serverError) => {
-    const permissionError = new FirestorePermissionError({
-      path: prescriptionsRef.path,
-      operation: 'create',
-      requestResourceData: prescriptionData,
-    });
-    errorEmitter.emit('permission-error', permissionError);
   });
-};
 
-export const updatePrescriptionStatus = async (db: Firestore, prescriptionId: string, status: 'approved' | 'rejected') => {
-    const prescriptionRef = doc(db, 'prescriptions', prescriptionId);
-    updateDoc(prescriptionRef, { status }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: prescriptionRef.path,
-            operation: 'update',
-            requestResourceData: { status },
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    });
-};
+  return prescriptionRef.id;
+}
 
-export const sendFollowUpMessage = async (db: Firestore, data: Omit<FollowUp, 'id' | 'sentAt'>) => {
-    const followUpData = {
-        ...data,
-        sentAt: serverTimestamp(),
-    };
-    const followUpsRef = collection(db, 'followUps');
-    addDoc(followUpsRef, followUpData).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: followUpsRef.path,
-            operation: 'create',
-            requestResourceData: followUpData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    });
-};
+// Update prescription status (admin action)
+export async function updatePrescriptionStatus(
+  db: Firestore,
+  prescriptionId: string,
+  status: 'approved' | 'rejected',
+  reviewNotes?: string
+): Promise<void> {
+  const prescriptionRef = doc(db, "prescriptions", prescriptionId);
+  await updateDoc(prescriptionRef, {
+    status,
+    reviewNotes: reviewNotes || '',
+    reviewedAt: serverTimestamp(),
+  });
+}
+
+// Get user orders
+export async function getUserOrders(
+  db: Firestore,
+  userId: string
+) {
+  if (!userId) throw new Error("User not logged in");
+  const ordersRef = collection(db, "orders");
+  const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Get user prescriptions
+export async function getUserPrescriptions(
+  db: Firestore,
+  userId: string
+) {
+  if (!userId) throw new Error("User not logged in");
+  const prescRef = collection(db, "prescriptions");
+  const q = query(prescRef, where("userId", "==", userId), orderBy("uploadedAt", "desc"));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}

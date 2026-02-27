@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -18,6 +19,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/icons";
 import { Loader2 } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -28,8 +30,11 @@ const formSchema = z.object({
   }),
 });
 
-export default function LoginPage() {
+function LoginForm() {
   const { login, loading } = useAuth();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const redirectPath = searchParams.get('from');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,7 +45,14 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await login(values.email, values.password);
+    try {
+      await login(values.email, values.password);
+      if (redirectPath) {
+        router.push(decodeURIComponent(redirectPath));
+      }
+    } catch (error) {
+      // Error is handled by the login function
+    }
   }
 
   return (
@@ -89,7 +101,7 @@ export default function LoginPage() {
             </form>
           </Form>
           <div className="mt-4 text-center text-sm">
-            Don't have an account?{" "}
+            {"Don't have an account? "}
             <Link href="/register" className="underline text-primary">
               Sign up
             </Link>
@@ -97,5 +109,17 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

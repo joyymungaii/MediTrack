@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingCart, Pill } from 'lucide-react';
+import { ShoppingCart, Pill, ShieldAlert } from 'lucide-react';
 import { placeholderImages } from '@/lib/placeholder-images.json';
 import type { Medicine } from '@/lib/types';
 import Header from '@/components/header';
@@ -17,20 +17,23 @@ import { useRouter } from 'next/navigation';
 import { addCartItem } from '@/lib/firestore';
 import { db } from '@/lib/firebase';
 import { formatCurrency } from '@/lib/utils';
+import { ProtectedRoute } from '@/components/protected-route';
+import { Badge } from '@/components/ui/badge';
 
 const mockMedicines: Medicine[] = placeholderImages.map((img, index) => ({
   id: img.id,
   name: img.description,
   description: 'A brief description of the medicine, its uses, and main ingredients goes here.',
-  price: parseFloat((Math.random() * 50 + 5).toFixed(2)) * 100, // Price in KES
+  price: parseFloat((Math.random() * 50 + 5).toFixed(2)) * 100,
   stock: Math.floor(Math.random() * 100),
   imageUrl: img.imageUrl,
   category: ['Pain Relief', 'Vitamins', 'Allergy', 'Cold & Flu'][index % 4],
+  requiresPrescription: (img as any).requiresPrescription || false,
 }));
 
 const categories = ['All Categories', 'Pain Relief', 'Vitamins', 'Allergy', 'Cold & Flu'];
 
-export default function MedicinesPage() {
+function MedicinesPageContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const { toast } = useToast();
@@ -105,7 +108,7 @@ export default function MedicinesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredMedicines.map((med) => (
               <Card key={med.id} className="flex flex-col">
-                <CardHeader>
+                <CardHeader className="relative">
                   <Image
                     src={med.imageUrl}
                     alt={med.name}
@@ -113,6 +116,12 @@ export default function MedicinesPage() {
                     height={300}
                     className="rounded-lg object-cover aspect-[4/3]"
                   />
+                  {med.requiresPrescription && (
+                    <Badge variant="destructive" className="absolute top-4 right-4 gap-1">
+                      <ShieldAlert className="h-3 w-3" />
+                      Rx Required
+                    </Badge>
+                  )}
                 </CardHeader>
                 <CardContent className="flex-1">
                   <CardTitle className="text-lg font-headline">{med.name}</CardTitle>
@@ -122,10 +131,17 @@ export default function MedicinesPage() {
                   </CardDescription>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" onClick={() => handleAddToCart(med)} disabled={med.stock === 0}>
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    {med.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-                  </Button>
+                  {med.requiresPrescription ? (
+                    <Button className="w-full" variant="outline" onClick={() => router.push('/upload-prescription')}>
+                      <ShieldAlert className="mr-2 h-4 w-4" />
+                      Upload Prescription
+                    </Button>
+                  ) : (
+                    <Button className="w-full" onClick={() => handleAddToCart(med)} disabled={med.stock === 0}>
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      {med.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             ))}
@@ -143,5 +159,13 @@ export default function MedicinesPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function MedicinesPage() {
+  return (
+    <ProtectedRoute>
+      <MedicinesPageContent />
+    </ProtectedRoute>
   );
 }

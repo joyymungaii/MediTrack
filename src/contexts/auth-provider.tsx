@@ -18,6 +18,9 @@ interface User {
   email: string | null;
   displayName?: string | null;
   role: 'customer' | 'admin';
+  fullName?: string;
+  dob?: Date;
+  tel?: string;
 }
 
 interface AuthContextType {
@@ -25,7 +28,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, additionalData?: { fullName?: string; dob?: Date; tel?: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -106,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (email: string, password: string, additionalData?: { fullName?: string; dob?: Date; tel?: string }) => {
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -117,12 +120,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userProfile = {
         uid: firebaseUser.uid,
         email: firebaseUser.email,
-        name: firebaseUser.displayName || email.split('@')[0],
-        role: role
+        fullName: additionalData?.fullName || email.split('@')[0],
+        dob: additionalData?.dob ? new Date(additionalData.dob).toISOString() : null,
+        tel: additionalData?.tel || '',
+        name: additionalData?.fullName || firebaseUser.displayName || email.split('@')[0],
+        role: role,
+        createdAt: new Date().toISOString(),
       };
+      
       await setDoc(doc(db, "users", firebaseUser.uid), userProfile);
       
-      toast({ title: "Registration Successful", description: `Welcome, ${email}!` });
+      toast({ title: "Registration Successful", description: `Welcome, ${additionalData?.fullName || email}!` });
       if(role === 'admin') {
         router.push('/admin');
       } else {
@@ -133,6 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
        let message = "An unknown error occurred.";
        if (error.code === 'auth/email-already-in-use') {
         message = 'This email address is already in use.';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'Password is too weak. Please use a stronger password.';
       } else {
         message = error.message;
       }
@@ -169,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

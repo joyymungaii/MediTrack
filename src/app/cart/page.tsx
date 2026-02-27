@@ -19,8 +19,9 @@ import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { ProtectedRoute } from '@/components/protected-route';
 
-export default function CartPage() {
+function CartPageContent() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -182,5 +183,13 @@ export default function CartPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <ProtectedRoute>
+      <CartPageContent />
+    </ProtectedRoute>
   );
 }

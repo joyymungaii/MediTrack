@@ -2,51 +2,59 @@
   "placeholderImages": [
     {
       "id": "med1",
-      "description": "Pain Reliever Tablets",
-      "imageUrl": "https://picsum.photos/seed/1/400/300",
-      "imageHint": "pills bottle"
+      "description": "Paracetamol 500mg",
+      "imageUrl": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop",
+      "imageHint": "medicine tablets",
+      "requiresPrescription": false
     },
     {
       "id": "med2",
-      "description": "Cough Syrup",
-      "imageUrl": "https://picsum.photos/seed/2/400/300",
-      "imageHint": "cough syrup"
+      "description": "Amoxicillin 250mg",
+      "imageUrl": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&h=300&fit=crop",
+      "imageHint": "capsule pills",
+      "requiresPrescription": true
     },
     {
       "id": "med3",
-      "description": "Allergy Relief Spray",
-      "imageUrl": "https://picsum.photos/seed/3/400/300",
-      "imageHint": "nasal spray"
+      "description": "Cetirizine Allergy Relief",
+      "imageUrl": "https://images.unsplash.com/photo-1631549916768-4be72bbd18b0?w=400&h=300&fit=crop",
+      "imageHint": "allergy medicine",
+      "requiresPrescription": false
     },
     {
       "id": "med4",
-      "description": "Vitamin C Supplements",
-      "imageUrl": "https://picsum.photos/seed/4/400/300",
-      "imageHint": "vitamin bottle"
+      "description": "Vitamin C 1000mg",
+      "imageUrl": "https://images.unsplash.com/photo-1550572017-edd951aa8f72?w=400&h=300&fit=crop",
+      "imageHint": "vitamin supplements",
+      "requiresPrescription": false
     },
     {
       "id": "med5",
-      "description": "Antacid Chewables",
-      "imageUrl": "https://picsum.photos/seed/5/400/300",
-      "imageHint": "antacid tablets"
+      "description": "Omeprazole 20mg",
+      "imageUrl": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=400&h=300&fit=crop",
+      "imageHint": "medicine capsules",
+      "requiresPrescription": true
     },
     {
       "id": "med6",
-      "description": "First-Aid Kit",
-      "imageUrl": "https://picsum.photos/seed/6/400/300",
-      "imageHint": "first-aid kit"
+      "description": "First-Aid Kit Complete",
+      "imageUrl": "https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=400&h=300&fit=crop",
+      "imageHint": "first aid kit",
+      "requiresPrescription": false
     },
     {
       "id": "med7",
-      "description": "Digital Thermometer",
-      "imageUrl": "https://picsum.photos/seed/7/400/300",
-      "imageHint": "digital thermometer"
+      "description": "Ibuprofen 400mg",
+      "imageUrl": "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=400&h=300&fit=crop",
+      "imageHint": "pain relief tablets",
+      "requiresPrescription": false
     },
     {
       "id": "med8",
-      "description": "Hand Sanitizer",
-      "imageUrl": "https://picsum.photos/seed/8/400/300",
-      "imageHint": "hand sanitizer"
+      "description": "Metformin 500mg",
+      "imageUrl": "https://images.unsplash.com/photo-1576602976047-174e57a47881?w=400&h=300&fit=crop",
+      "imageHint": "prescription medicine",
+      "requiresPrescription": true
     }
   ]
 }

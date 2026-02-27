@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/use-auth';
 
 // This would be fetched from Firestore in a real app
 const mockPatients = [
-  { uid: "USR001", email: "john.doe@email.com", name: "John Doe", phoneNumber: "0712345678" },
+  { uid: "USR001", email: "joy.mungai@email.com", name: "Joy Mungai", phoneNumber: "0712345678" },
   { uid: "USR002", email: "jane.smith@email.com", name: "Jane Smith", phoneNumber: "0787654321" },
   { uid: "USR003", email: "sam.wilson@email.com", name: "Sam Wilson", phoneNumber: "0711223344" },
 ];

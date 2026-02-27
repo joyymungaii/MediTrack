@@ -3,51 +3,42 @@
 /**
  * @fileOverview An AI-assisted tool for pharmacists to suggest medicines based on entered symptoms.
  *
- * - aiPharmacistAssistant - A function that suggests medicines based on symptoms.
- * - AiPharmacistAssistantInput - The input type for the aiPharmacistAssistant function.
- * - AiPharmacistAssistantOutput - The return type for the aiPharmacistAssistant function.
+ * Technology: Vercel AI SDK 6 with @ai-sdk/google (direct Google Gemini API, free tier).
+ * Env: Requires GOOGLE_GENERATIVE_AI_API_KEY
+ *
+ * - aiPharmacistAssistant - A server action that suggests medicines based on symptoms.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { generateText } from 'ai';
+import { google } from '@ai-sdk/google';
 
-const AiPharmacistAssistantInputSchema = z.object({
-  symptoms: z
-    .string()
-    .describe('The symptoms entered by the pharmacist.'),
-});
-export type AiPharmacistAssistantInput = z.infer<typeof AiPharmacistAssistantInputSchema>;
-
-const AiPharmacistAssistantOutputSchema = z.object({
-  suggestedMedicines: z
-    .string()
-    .describe('A list of suggested medicines based on the symptoms.'),
-});
-export type AiPharmacistAssistantOutput = z.infer<typeof AiPharmacistAssistantOutputSchema>;
-
-export async function aiPharmacistAssistant(input: AiPharmacistAssistantInput): Promise<AiPharmacistAssistantOutput> {
-  return aiPharmacistAssistantFlow(input);
+export interface AiPharmacistAssistantInput {
+  symptoms: string;
 }
 
-const prompt = ai.definePrompt({
-  name: 'aiPharmacistAssistantPrompt',
-  input: {schema: AiPharmacistAssistantInputSchema},
-  output: {schema: AiPharmacistAssistantOutputSchema},
-  prompt: `You are an AI assistant for pharmacists. Based on the symptoms entered by the pharmacist, suggest a list of medicines.
+export interface AiPharmacistAssistantOutput {
+  suggestedMedicines: string;
+}
 
-Symptoms: {{{symptoms}}}
+const model = google('gemini-2.5-flash');
 
-Suggested Medicines:`,
-});
+export async function aiPharmacistAssistant(input: AiPharmacistAssistantInput): Promise<AiPharmacistAssistantOutput> {
+  const { text } = await generateText({
+    model,
+    system: `You are an expert AI pharmacy assistant for MediTrack.
+You are assisting a licensed pharmacist with medicine suggestions.
 
-const aiPharmacistAssistantFlow = ai.defineFlow(
-  {
-    name: 'aiPharmacistAssistantFlow',
-    inputSchema: AiPharmacistAssistantInputSchema,
-    outputSchema: AiPharmacistAssistantOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
+Important rules:
+- Provide detailed, professional-grade medicine suggestions.
+- Include generic names and common brand names available in Kenya.
+- Include dosage information, contraindications, and potential drug interactions.
+- Suggest alternatives when appropriate.
+- Format your response with clear sections for each recommended medicine.
+- Be thorough but organized.`,
+    prompt: `A pharmacist needs medicine suggestions for a patient with these symptoms:\n\n${input.symptoms}\n\nProvide your professional recommendations:`,
+    maxOutputTokens: 1500,
+    temperature: 0.3,
+  });
+
+  return { suggestedMedicines: text };
+}

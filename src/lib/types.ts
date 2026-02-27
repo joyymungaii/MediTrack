@@ -13,6 +13,7 @@ export interface Medicine {
   stock: number;
   imageUrl: string;
   category: string;
+  requiresPrescription?: boolean;
 }
 
 export interface CartItem {
@@ -29,11 +30,13 @@ export interface Order {
   userId: string;
   items: CartItem[];
   total: number;
-  status: 'Pending' | 'Paid' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Paid' | 'Processing' | 'Dispatched' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
   deliveryOption?: 'Standard' | 'Express';
   shippingAddress: any;
-  createdAt: any; // Using `any` for Firebase serverTimestamp
+  createdAt: any;
   paymentMethod?: 'MPESA' | 'Cash on Delivery';
+  customerName?: string;
+  customerPhone?: string;
 }
 
 export interface Prescription {
@@ -44,8 +47,11 @@ export interface Prescription {
   email?: string;
   prescriptionImageUrl: string;
   status: 'pending' | 'approved' | 'rejected';
-  uploadedAt: any; // Using `any` for Firebase serverTimestamp
+  uploadedAt: any;
   notes?: string;
+  reviewedBy?: string;
+  reviewNotes?: string;
+  reviewedAt?: any;
 }
 
 export interface FollowUp {

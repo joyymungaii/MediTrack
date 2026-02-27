@@ -16,6 +16,7 @@ import type { Order } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { ProtectedRoute } from '@/components/protected-route';
 
 function OrderConfirmationContent() {
     const searchParams = useSearchParams();
@@ -120,16 +121,18 @@ function OrderConfirmationContent() {
 
 export default function OrderConfirmationPage() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 bg-primary/5">
-        <div className="container mx-auto px-4 py-12 md:py-20">
-            <Suspense fallback={<div className="flex justify-center items-center py-20"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-                <OrderConfirmationContent />
-            </Suspense>
-        </div>
-      </main>
-      <Footer />
-    </div>
+    <ProtectedRoute>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 bg-primary/5">
+          <div className="container mx-auto px-4 py-12 md:py-20">
+              <Suspense fallback={<div className="flex justify-center items-center py-20"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+                  <OrderConfirmationContent />
+              </Suspense>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    </ProtectedRoute>
   );
 }

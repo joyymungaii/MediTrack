@@ -30,18 +30,18 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold font-headline">Support</h3>
             <ul className="mt-4 space-y-2">
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Contact Us</Link></li>
+              <li><Link href="#contact-us" className="text-sm text-muted-foreground hover:text-primary">Contact Us</Link></li>
               <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">FAQ</Link></li>
               <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link></li>
               <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
             </ul>
           </div>
-          <div>
+          <div id="contact-us">
             <h3 className="font-semibold font-headline">Contact Us</h3>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li>123 Health St, Wellness City</li>
-              <li>Email: support@meditrack.pro</li>
-              <li>Phone: (123) 456-7890</li>
+              <li>Kasarani Mwiki, Nairobi</li>
+              <li>Email: supportmeditrack@gmail.com</li>
+              <li>Phone: 0768608469</li>
             </ul>
           </div>
         </div>

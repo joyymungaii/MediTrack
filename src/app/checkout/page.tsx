@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { createOrder } from '@/lib/firestore';
 import MpesaDialog from '@/components/mpesa-dialog';
+import { ProtectedRoute } from '@/components/protected-route';
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name is required' }),
@@ -31,7 +32,7 @@ const formSchema = z.object({
   }),
 });
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -161,7 +162,7 @@ export default function CheckoutPage() {
                       <FormField control={form.control} name="fullName" render={({ field }) => (
                         <FormItem>
                           <FormLabel>Full Name</FormLabel>
-                          <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                          <FormControl><Input placeholder="Joy Mungai" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
@@ -176,7 +177,7 @@ export default function CheckoutPage() {
                     <FormField control={form.control} name="address" render={({ field }) => (
                       <FormItem className="mt-4">
                         <FormLabel>Delivery Address</FormLabel>
-                        <FormControl><Input placeholder="123 Main St, Nairobi" {...field} /></FormControl>
+                        <FormControl><Input placeholder="Kasarani, Nairobi" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -248,5 +249,13 @@ export default function CheckoutPage() {
         onSuccess={handleMpesaSuccess}
       />
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <ProtectedRoute>
+      <CheckoutPageContent />
+    </ProtectedRoute>
   );
 }

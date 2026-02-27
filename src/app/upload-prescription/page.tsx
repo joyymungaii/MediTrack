@@ -17,6 +17,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { uploadPrescription } from '@/lib/firestore';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
+import { ProtectedRoute } from '@/components/protected-route';
 
 const formSchema = z.object({
   notes: z.string().optional(),
@@ -24,7 +25,7 @@ const formSchema = z.object({
 });
 
 
-export default function UploadPrescriptionPage() {
+function UploadPrescriptionPageContent() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
@@ -172,5 +173,13 @@ export default function UploadPrescriptionPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function UploadPrescriptionPage() {
+  return (
+    <ProtectedRoute>
+      <UploadPrescriptionPageContent />
+    </ProtectedRoute>
   );
 }
